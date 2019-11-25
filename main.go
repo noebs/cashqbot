@@ -37,7 +37,11 @@ func main() {
 		h := `Help: CashQ bot is our friendly bot that can help you to do your payments!
 
 		List of commands (not commands start with a "/" prefix)
-		
+		/rate (our most useful command)
+		rate helps you find the accurate rate of US dollar to SDG. We use the
+		service provided by https://www.price-today.com/currency-prices-sudan/ for our
+		pricing.
+
 		/balance PAN IPIN Expdate
 		- Enter your PAN (16 or 19 digit)
 		- Your IPIN (note, internet PIN and not your typical PIN)
@@ -77,11 +81,22 @@ func main() {
 		- Expdate (as written in your Cards YYMM or Last two digits of year and month 01)
 		- ToCard: The 16-19 digits of card you want to send to
 		- Amount: The amount for card transfer`
+
 		b.Send(m.Sender, h)
 	})
+
 	b.Handle("/hello", func(m *tb.Message) {
 		b.Send(m.Sender, m.Payload)
 	})
+
+	b.Handle("/rate", func(m *tb.Message) {
+		a := extract("https://www.price-today.com/currency-prices-sudan/")
+		fmt.Printf("The values are: %v\n", a)
+		_, r := dump(a)
+		fmt.Printf("The USD rate is: %v\n", r)
+		b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", r))
+	})
+
 	b.Handle("/balance", func(m *tb.Message) {
 		// get key
 		payload := m.Payload
@@ -322,7 +337,7 @@ func getKey() (string, error) {
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "https://beta.soluspay.net/api/consumer/key")
+	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/key")
 	if err != nil {
 		return "", err
 	}
@@ -346,7 +361,7 @@ func balance(ipin, pan, expDate, uuid string) (Response, error) {
 
 	buf, _ := json.Marshal(&k)
 
-	res, err := request(buf, "https://beta.soluspay.net/api/consumer/balance")
+	res, err := request(buf, "http://192.168.20.20:8080/consumer/balance")
 	if err != nil {
 		return res, err
 	}
@@ -397,7 +412,7 @@ func billers(payeeId, personalInfo, pan, ipin, expDate, uuid string, amount floa
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "https://beta.soluspay.net/api/consumer/bill_payment")
+	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/bill_payment")
 	if err != nil {
 		return noebs, err
 	}
@@ -433,7 +448,7 @@ func cardTransfer(toCard, pan, ipin, expDate, uuid string, amount float64) (Resp
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "https://beta.soluspay.net/api/consumer/p2p")
+	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/p2p")
 	if err != nil {
 		return noebs, err
 	}

@@ -8,7 +8,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 )
 
 func request(buf []byte, url string) (Response, error) {
@@ -51,4 +54,56 @@ func request(buf []byte, url string) (Response, error) {
 	}
 	log.Printf("The passed response object is: %+v", ebsErr.Details)
 	return ebsErr.Details, errors.New("there is something error")
+}
+
+//extract extracts links of provided URL
+func extract(domain string) []string {
+	var links []string
+
+	res, err := http.Get(domain)
+	if err != nil {
+		return nil
+	}
+	defer res.Body.Close()
+	doc, err := html.Parse(res.Body)
+	if err != nil {
+		return nil
+	}
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "strong" {
+			// for _, a := range n.Attr {
+			// 	if a.Key == "span" {
+			// 		fmt.Printf("The value we found is: %v", a)
+			// 	}
+			// }
+
+			// if n.FirstChild.Data == "سعر الدولار الأمريكي" {
+			// 	fmt.Printf("The value we want is: %v\n%v", n.FirstChild.NextSibling.Data, n.FirstChild.Data)
+			// }
+			links = append(links, n.FirstChild.Data)
+			// fmt.Printf("The values are: %#v\n", n.FirstChild.Data)
+			// for _, s := range n.Attr {
+			// 	fmt.Printf("The value is :%v\n", s.Val)
+			// }
+
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	//
+	return links
+}
+
+func dump(links []string) (bool, string) {
+	for i, v := range links {
+		if v == "سعر الدولار الأمريكي" {
+			usd := strings.Split(links[i+1], " ")
+			return true, usd[0]
+		}
+	}
+	return false, ""
 }
