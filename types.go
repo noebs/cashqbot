@@ -42,15 +42,15 @@ type Noebs struct {
 }
 
 type Response struct {
-	ResponseMessage string                 `json:"responseMessage,omitempty"`
-	ResponseStatus  string                 `json:"responseStatus,omitempty"`
-	ResponseCode    int                    `json:"responseCode"`
-	ReferenceNumber string                 `json:"referenceNumber,omitempty"`
-	ApprovalCode    string                 `json:"approvalCode,omitempty"`
-	Balance         map[string]interface{} `json:"balance,omitempty"`
-	PaymentInfo     string                 `json:"paymentInfo,omitempty"`
-	BillInfo        map[string]interface{} `json:"billInfo,omitempty"`
-	Key             string                 `json:"pubKeyValue"`
+	ResponseMessage string `json:"responseMessage"`
+	ResponseStatus  string `json:"responseStatus"`
+	ResponseCode    int    `json:"responseCode"`
+	// ReferenceNumber string                 `json:"referenceNumber"`
+	// ApprovalCode    string                 `json:"approvalCode"`
+	Balance     map[string]interface{} `json:"balance"`
+	PaymentInfo string                 `json:"paymentInfo"`
+	BillInfo    map[string]interface{} `json:"billInfo"`
+	Key         string                 `json:"pubKeyValue"`
 }
 
 type Error struct {

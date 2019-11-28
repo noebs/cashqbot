@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -21,11 +22,18 @@ const (
 )
 
 func main() {
+	c := cache.New(5*time.Hour, 10*time.Hour)
+
+	a := extract("https://www.price-today.com/currency-prices-sudan/")
+	fmt.Printf("The values are: %v\n", a)
+	_, r := dump(a)
+	c.Set("rate", r, 24*time.Hour)
+
 	b, err := tb.NewBot(tb.Settings{
 		Token: "1001304778:AAGqNz-9ESmnMjMcsIqzsN_1A_ncWydb6fw",
 		// You can also set custom API URL. If field is empty it equals to "https://api.telegram.org"
 		//URL:    "http://195.129.111.17:8012",
-		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
+		Poller: &tb.LongPoller{Timeout: 2 * time.Second},
 	})
 
 	if err != nil {
@@ -35,11 +43,12 @@ func main() {
 
 	b.Handle("/help", func(m *tb.Message) {
 		h := `Help: CashQ bot is our friendly bot that can help you to do your payments!
-
+		
 		List of commands (not commands start with a "/" prefix)
+
 		/rate (our most useful command)
 		rate helps you find the accurate rate of US dollar to SDG. We use the
-		service provided by https://www.price-today.com/currency-prices-sudan/ for our
+		service provided by for our
 		pricing.
 
 		/balance PAN IPIN Expdate
@@ -80,9 +89,30 @@ func main() {
 		- Your IPIN (note, internet PIN and not your typical PIN)
 		- Expdate (as written in your Cards YYMM or Last two digits of year and month 01)
 		- ToCard: The 16-19 digits of card you want to send to
-		- Amount: The amount for card transfer`
+		- Amount: The amount for card transfer
+		
+		Built with <3 by your friends at Solus https://soluspay.net
+		*Download Our Android App CashQ for full mobile experience https://play.google.com/store/apps/details?id=net.soluspay.cashq`
 
-		b.Send(m.Sender, h)
+		replyBtn := tb.ReplyButton{
+			Text: "Download Cashq 📢",
+		}
+		visitSolus := tb.ReplyButton{
+			Text: "Visit Solus <3",
+		}
+
+		replyKeys := [][]tb.ReplyButton{
+			[]tb.ReplyButton{replyBtn},
+			[]tb.ReplyButton{visitSolus},
+		}
+
+		b.Handle(&replyBtn, func(m *tb.Message) {
+			// how to do something?
+
+		})
+		b.Send(m.Sender, h, &tb.ReplyMarkup{
+			ReplyKeyboard: replyKeys,
+		})
 	})
 
 	b.Handle("/hello", func(m *tb.Message) {
@@ -90,11 +120,16 @@ func main() {
 	})
 
 	b.Handle("/rate", func(m *tb.Message) {
-		a := extract("https://www.price-today.com/currency-prices-sudan/")
-		fmt.Printf("The values are: %v\n", a)
-		_, r := dump(a)
-		fmt.Printf("The USD rate is: %v\n", r)
-		b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", r))
+		if res, ok := c.Get("rate"); !ok {
+			a := extract("https://www.price-today.com/currency-prices-sudan/")
+			fmt.Printf("The values are: %v\n", a)
+			_, r := dump(a)
+			fmt.Printf("The USD rate is: %v\n", r)
+			c.Set("rate", r, 24*time.Hour)
+		} else {
+			b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", res.(string)))
+		}
+
 	})
 
 	b.Handle("/balance", func(m *tb.Message) {
@@ -112,7 +147,7 @@ func main() {
 		res, err := balance(ipin, p[0], p[2], uuid)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("EBS error: %v\n🙏🙏🙏", res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("EBS error: Response Message: %v\n🙏🙏🙏", res.ResponseMessage))
 			return
 		}
 
@@ -154,7 +189,7 @@ func main() {
 		res, err := billers(zain, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
 			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
 		}
@@ -236,7 +271,7 @@ func main() {
 		res, err := billers(mtn, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
 			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
 		}
@@ -277,9 +312,9 @@ func main() {
 		res, err := billers(nec, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
-			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. \nResponse Message: %v\nResponse Code is: %v, Token: %v", res.ResponseMessage, res.ResponseCode, res.BillInfo))
 		}
 
 	})
@@ -318,13 +353,21 @@ func main() {
 		res, err := cardTransfer(toCard, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
-			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
+			log.Printf("The response body is: %v", res)
+			b.Send(m.Sender, fmt.Sprintf("Successful Transaction.\nResponse Message: %v\nResponse code: %v", res.ResponseMessage, res.ResponseCode))
 		}
 
 	})
 
+	// experimental -- for performance
+	go func() {
+		<-time.After(60 * time.Second)
+		b.Stop()
+	}()
+
+	b.Handle(tb.OnText, "unknown command")
 	b.Start()
 }
 

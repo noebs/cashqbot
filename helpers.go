@@ -36,16 +36,18 @@ func request(buf []byte, url string) (Response, error) {
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-
-	log.Printf("The returned response (raw) is: %v", string(body))
+	defer res.Body.Close()
 
 	var noebs Noebs
 	if res.StatusCode == http.StatusOK {
-		json.Unmarshal(body, &noebs)
+		err := json.Unmarshal(body, &noebs)
+		if err != nil {
+			log.Printf("There is an error in noebser marshaling: %v", err)
+		}
 		log.Printf("The passed Response object is: %+v\n", noebs.Response)
 		return noebs.Response, nil
 	}
+
 	var ebsErr Error
 	err = json.Unmarshal(body, &ebsErr)
 	if err != nil {
