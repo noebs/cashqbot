@@ -407,8 +407,6 @@ func main() {
 			b.Send(m.Sender, "Failed to process the transaction. Code PUB_KEY_ERR\n")
 			return
 		}
-		uuid := uuid.New().String()
-		ipin, err := rsaEncrypt(key, p[1], uuid)
 
 		if err != nil {
 			log.Printf("The erorr is: %v. The IPIN is: %v\n", err, p[1])
@@ -416,21 +414,46 @@ func main() {
 			return
 		}
 
-		toCard := p[3]
 		expDate := p[2]
-		amount := p[4]
 		pan := p[0]
 
-		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := cardTransfer(toCard, pan, ipin, expDate, uuid, amountVal)
-		if err != nil {
-			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
-		} else {
-			b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Message: %v",
-				res.ResponseMessage))
+		data := toStrings(p[3:])
+		log.Printf("The len of data is: %v", len(data))
+
+		if isOdd(len(p[3:])) {
+			// return an error
+			// it should be a pari of nec_number, amount
+			b.Send(m.Sender, "Wrong format. Please use nec_number amount")
+			return
 		}
 
+		fields := dispatch(data)
+		log.Printf("The fields output is: %#v", fields)
+
+		for _, v := range fields {
+			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
+			amountVal, _ := strconv.ParseFloat(v[1], 32)
+
+			// generate ipin and generate uuid
+			uuid := uuid.New().String()
+			ipin, err := rsaEncrypt(key, p[1], uuid)
+
+			if err != nil {
+				log.Printf("The erorr is: %v. The IPIN is: %v\n", err, p[1])
+				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
+				return
+			}
+
+			res, err := cardTransfer(v[0], pan, ipin, expDate, uuid, amountVal)
+			if err != nil {
+				fmt.Printf("The error is: %v", err)
+				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
+			} else {
+				b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Status: %v\nResponse Message: %v",
+					res.ResponseStatus, res.ResponseMessage))
+			}
+
+		}
 	})
 
 	b.Handle("/bills", func(m *tb.Message) {
@@ -622,18 +645,18 @@ func billers(payeeId, personalInfo, pan, ipin, expDate, uuid string, amount floa
 		nec top up: 0010020001
 	*/
 
-	var pId string
+	// var pId string
 
-	switch p := payeeId; {
-	case p == zain:
-		pId = zain
-	case p == mtn:
-		pId = mtn
-	case p == sudani:
-		pId = sudani
-	case p == nec:
-		pId = nec
-	}
+	// switch p := payeeId; {
+	// case p == zain:
+	// 	pId = zain
+	// case p == mtn:
+	// 	pId = mtn
+	// case p == sudani:
+	// 	pId = sudani
+	// case p == nec:
+	// 	pId = nec
+	// }
 
 	k := Bills{
 		Key: Key{
@@ -646,7 +669,7 @@ func billers(payeeId, personalInfo, pan, ipin, expDate, uuid string, amount floa
 			Expdate: expDate,
 			IPIN:    ipin,
 		},
-		PayeeId:      pId,
+		PayeeId:      payeeId,
 		PersonalInfo: personalInfo,
 		Amount: Amount{
 			AmountNumber:     amount,
