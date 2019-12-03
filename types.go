@@ -59,3 +59,11 @@ type Error struct {
 	Details Response
 	Message string
 }
+
+type necBill struct {
+	SalesAmount  float64 `json:"SalesAmount"`
+	FixedFee     float64 `json:"FixedFee"`
+	Token        string  `json:"Token"`
+	MeterNumber  string  `json:"MeterNumber"`
+	CustomerName string  `json:"CustomerName"`
+}
