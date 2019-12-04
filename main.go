@@ -357,6 +357,7 @@ func main() {
 
 		fields := dispatch(data)
 		log.Printf("The fields output is: %#v", fields)
+		var errCounter int
 
 		for _, v := range fields {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
@@ -388,6 +389,13 @@ func main() {
 			}
 
 		}
+
+		// Count the Sum of the transactions.
+		if errCounter > 0 {
+			b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v\nAll Transaction(s) Completed with %d Errors\nMade with <3 By your friends at Solus!", time.Now().UTC(), errCounter))
+			return
+		}
+		b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v, All Transaction(s) Completed Successfully\nMade with <3 By your friends at Solus!", time.Now().UTC()))
 
 	})
 
@@ -430,6 +438,8 @@ func main() {
 		fields := dispatch(data)
 		log.Printf("The fields output is: %#v", fields)
 
+		var errCounter int
+
 		for _, v := range fields {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
 			amountVal, _ := strconv.ParseFloat(v[1], 32)
@@ -454,6 +464,14 @@ func main() {
 			}
 
 		}
+
+		// Count the Sum of the transactions.
+		if errCounter > 0 {
+			b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v\nAll Transaction(s) Completed with %d Errors\nMade with <3 By your friends at Solus!", time.Now().UTC(), errCounter))
+			return
+		}
+		b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v, All Transaction(s) Completed Successfully\nMade with <3 By your friends at Solus!", time.Now().UTC()))
+
 	})
 
 	b.Handle("/bills", func(m *tb.Message) {
@@ -491,6 +509,7 @@ func main() {
 
 		fields := dispatch(data)
 		log.Printf("The fields output is: %#v", fields)
+		var errCounter int
 
 		for _, v := range fields {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
@@ -508,6 +527,7 @@ func main() {
 			biller := getBiller(v[0])
 			res, err := billers(true, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
 			if err != nil {
+				errCounter++
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
 			} else {
@@ -518,6 +538,12 @@ func main() {
 					})
 			}
 		}
+		// Count the Sum of the transactions.
+		if errCounter > 0 {
+			b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v\nAll Transaction(s) Completed with %d Errors\nMade with <3 By your friends at Solus!", time.Now().UTC(), errCounter))
+			return
+		}
+		b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v, All Transaction(s) Completed Successfully\nMade with <3 By your friends at Solus!", time.Now().UTC()))
 
 	})
 
@@ -540,25 +566,10 @@ func main() {
 
 		expDate := p[2]
 		pan := p[0]
+		var errCounter int
 
-		// payInfo := "METER=" + p[3]
-		// amount := p[4]
-
-		if isOdd(len(p[3:])) {
-			// return an error
-			// it should be a pari of nec_number, amount
-			b.Send(m.Sender, "Wrong format. Please use nec_number amount")
-			return
-		}
-
-		data := toStrings(p[3:])
-
-		fields := dispatch(data)
-		log.Printf("The fields output is: %#v", fields)
-
-		for _, v := range fields {
+		for _, v := range p[3:] {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
-			amountVal, _ := strconv.ParseFloat(v[1], 32)
 
 			// generate ipin and generate uuid
 			uuid := uuid.New().String()
@@ -569,21 +580,29 @@ func main() {
 				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
 				return
 			}
-			biller := getBiller(v[0])
-			res, err := billers(false, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
+			biller := getBiller(v)
+			res, err := billers(false, biller, "MPHONE="+v, pan, ipin, expDate, uuid, 0)
 
 			info := res.BillInfo
 			if err != nil {
+				errCounter++
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
 			} else {
-				b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Message: %v\nYour unpaid amount is: %v\nBill Info: %v",
-					res.ResponseMessage, info["unbilledAmount"], res.BillInfo),
+				b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Message: %v\nYour unpaid amount is: 💰%v💰\n\n\nBill Info: %v",
+					res.ResponseMessage, info["billedAmount"], res.BillInfo),
 					&tb.SendOptions{
 						ParseMode: "markdown",
 					})
 			}
 		}
+
+		// Count the Sum of the transactions.
+		if errCounter > 0 {
+			b.Send(m.Sender, fmt.Sprintf("All Transaction(s) Completed with %d Errors\nMade with <3 By your friends at Solus!", errCounter))
+			return
+		}
+		b.Send(m.Sender, fmt.Sprintf("All Transaction(s) Completed Successfully on :%v\nMade with <3 By your friends at Solus!", time.Now().UTC()))
 
 	})
 
