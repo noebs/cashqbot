@@ -230,7 +230,7 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(zain, payInfo, pan, ipin, expDate, uuid, amountVal)
+		res, err := billers(true, zain, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
@@ -271,7 +271,7 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(sudani, payInfo, pan, ipin, expDate, uuid, amountVal)
+		res, err := billers(true, sudani, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
@@ -312,7 +312,7 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(mtn, payInfo, pan, ipin, expDate, uuid, amountVal)
+		res, err := billers(true, mtn, payInfo, pan, ipin, expDate, uuid, amountVal)
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
@@ -372,7 +372,7 @@ func main() {
 				return
 			}
 
-			res, err := billers(nec, "METER="+v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := billers(true, nec, "METER="+v[0], pan, ipin, expDate, uuid, amountVal)
 			if err != nil {
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
@@ -506,7 +506,7 @@ func main() {
 				return
 			}
 			biller := getBiller(v[0])
-			res, err := billers(biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := billers(true, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
 			if err != nil {
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
@@ -570,7 +570,7 @@ func main() {
 				return
 			}
 			biller := getBiller(v[0])
-			res, err := billers(biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := billers(false, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
 
 			info := res.BillInfo
 			if err != nil {
@@ -636,7 +636,7 @@ func balance(ipin, pan, expDate, uuid string) (Response, error) {
 }
 
 // billers(nec, payInfo, pan, ipin, expDate, uuid, amount)
-func billers(payeeId, personalInfo, pan, ipin, expDate, uuid string, amount float64) (Response, error) {
+func billers(isPayment bool, payeeId, personalInfo, pan, ipin, expDate, uuid string, amount float64) (Response, error) {
 
 	/*
 		zain top up: 0010010001
@@ -679,7 +679,11 @@ func billers(payeeId, personalInfo, pan, ipin, expDate, uuid string, amount floa
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/bill_payment")
+	endpoint := "bill_payment"
+	if !isPayment {
+		endpoint = "bill_inquiry"
+	}
+	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/"+endpoint)
 	if err != nil {
 		return noebs, err
 	}

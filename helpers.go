@@ -227,7 +227,7 @@ func getBiller(b string) string {
 	} else if strings.HasPrefix(b, "01") {
 		return sudaniBillPayment
 	}
-	return zainBillPayment
+	return zainBillInquiry
 }
 
 func getInvoices(b string) string {
