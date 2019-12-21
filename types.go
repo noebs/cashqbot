@@ -22,7 +22,7 @@ type Bills struct {
 }
 
 type Amount struct {
-	AmountNumber     float64 `json:"tranAmount"`
+	AmountNumber     float32 `json:"tranAmount"`
 	TranCurrencyCode string  `json:"tranCurrencyCode"`
 }
 

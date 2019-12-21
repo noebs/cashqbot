@@ -13,9 +13,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"golang.org/x/net/html"
+	"google.golang.org/grpc"
+	"context"
+	pb "rateit/rate"
 )
+
+const (
+	address     = "localhost:50051"
+)
+
 
 func request(buf []byte, url string) (Response, error) {
 	verifyTLS := &http.Transport{
@@ -43,10 +50,7 @@ func request(buf []byte, url string) (Response, error) {
 
 	var noebs Noebs
 	if res.StatusCode == http.StatusOK {
-		err := json.Unmarshal(body, &noebs)
-		if err != nil {
-			log.Printf("There is an error in noebser marshaling: %v", err)
-		}
+		json.Unmarshal(body, &noebs)
 		log.Printf("The passed Response object is: %+v\n", noebs.Response)
 		return noebs.Response, nil
 	}
@@ -258,4 +262,25 @@ func normalize(s string) string {
 
 func logPanic(e error) {
 	log.Printf("There is an error: %v", e)
+}
+
+func rpcClient() float32{
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewRaterClient(conn)
+
+	// Contact the server and print out its response.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	r, err := c.GetSDGRate(ctx, &pb.Empty{})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	log.Printf("Greeting: %f", r.Message)
+	return r.Message
+
 }

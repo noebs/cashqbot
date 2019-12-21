@@ -24,9 +24,11 @@ const (
 func main() {
 	c := cache.New(5*time.Hour, 10*time.Hour)
 
-	a := extract("https://www.price-today.com/currency-prices-sudan/")
-	fmt.Printf("The values are: %v\n", a)
-	_, r := dump(a)
+	// a := extract("https://www.price-today.com/currency-prices-sudan/")
+	// fmt.Printf("The values are: %v\n", a)
+	// _, r := dump(a)
+	r := rpcClient()
+	
 	c.Set("rate", r, 24*time.Hour)
 
 	b, err := tb.NewBot(tb.Settings{
@@ -230,7 +232,8 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(true, zain, payInfo, pan, ipin, expDate, uuid, amountVal)
+
+		res, err := billers(true, zain, payInfo, pan, ipin, expDate, uuid, float32(amountVal))
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
@@ -271,7 +274,7 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(true, sudani, payInfo, pan, ipin, expDate, uuid, amountVal)
+		res, err := billers(true, sudani, payInfo, pan, ipin, expDate, uuid, float32(amountVal))
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("There is an error: %v. EBS response: %v", err, res.ResponseMessage))
@@ -312,7 +315,7 @@ func main() {
 		pan := p[0]
 
 		amountVal, _ := strconv.ParseFloat(amount, 32)
-		res, err := billers(true, mtn, payInfo, pan, ipin, expDate, uuid, amountVal)
+		res, err := billers(true, mtn, payInfo, pan, ipin, expDate, uuid, float32(amountVal))
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
 			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
@@ -373,7 +376,7 @@ func main() {
 				return
 			}
 
-			res, err := billers(true, nec, "METER="+v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := billers(true, nec, "METER="+v[0], pan, ipin, expDate, uuid, float32(amountVal))
 			if err != nil {
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
@@ -443,6 +446,7 @@ func main() {
 		for _, v := range fields {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
 			amountVal, _ := strconv.ParseFloat(v[1], 32)
+			// amountVal := fmt.Sprintf("%.2f", fval)
 
 			// generate ipin and generate uuid
 			uuid := uuid.New().String()
@@ -454,7 +458,7 @@ func main() {
 				return
 			}
 
-			res, err := cardTransfer(v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := cardTransfer(v[0], pan, ipin, expDate, uuid, float32(amountVal))
 			if err != nil {
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
@@ -514,6 +518,7 @@ func main() {
 		for _, v := range fields {
 			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
 			amountVal, _ := strconv.ParseFloat(v[1], 32)
+			// amountVal := fmt.Sprintf("%.2f", fval)
 
 			// generate ipin and generate uuid
 			uuid := uuid.New().String()
@@ -525,7 +530,7 @@ func main() {
 				return
 			}
 			biller := getBiller(v[0])
-			res, err := billers(true, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, amountVal)
+			res, err := billers(true, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, float32(amountVal))
 			if err != nil {
 				errCounter++
 				fmt.Printf("The error is: %v", err)
@@ -655,7 +660,7 @@ func balance(ipin, pan, expDate, uuid string) (Response, error) {
 }
 
 // billers(nec, payInfo, pan, ipin, expDate, uuid, amount)
-func billers(isPayment bool, payeeId, personalInfo, pan, ipin, expDate, uuid string, amount float64) (Response, error) {
+func billers(isPayment bool, payeeId, personalInfo, pan, ipin, expDate, uuid string, amount float32) (Response, error) {
 
 	/*
 		zain top up: 0010010001
@@ -709,7 +714,7 @@ func billers(isPayment bool, payeeId, personalInfo, pan, ipin, expDate, uuid str
 	return noebs, nil
 }
 
-func cardTransfer(toCard, pan, ipin, expDate, uuid string, amount float64) (Response, error) {
+func cardTransfer(toCard, pan, ipin, expDate, uuid string, amount float32) (Response, error) {
 
 	/*
 		zain top up: 0010010001
