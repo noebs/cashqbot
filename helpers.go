@@ -2,10 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	pb "github.com/adonese/microservices/raterpc/rate"
+	"golang.org/x/net/html"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
 	"math"
@@ -13,16 +17,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"golang.org/x/net/html"
-	"google.golang.org/grpc"
-	"context"
-	pb "rateit/rate"
 )
 
 const (
-	address     = "localhost:50051"
+	address = "localhost:50051"
 )
-
 
 func request(buf []byte, url string) (Response, error) {
 	verifyTLS := &http.Transport{
@@ -49,6 +48,7 @@ func request(buf []byte, url string) (Response, error) {
 	defer res.Body.Close()
 
 	var noebs Noebs
+	log.Printf("the response code is: %d\n", res.StatusCode)
 	if res.StatusCode == http.StatusOK {
 		json.Unmarshal(body, &noebs)
 		log.Printf("The passed Response object is: %+v\n", noebs.Response)
@@ -56,11 +56,10 @@ func request(buf []byte, url string) (Response, error) {
 	}
 
 	var ebsErr Error
-	err = json.Unmarshal(body, &ebsErr)
-	if err != nil {
-		log.Printf("The error is: %v", err)
-		return ebsErr.Details, err
-	}
+	json.Unmarshal(body, &ebsErr)
+
+	log.Printf("ebs response raw is: %s\n", string(body))
+
 	log.Printf("The passed response object is: %+v", ebsErr.Details)
 	return ebsErr.Details, errors.New("there is something error")
 }
@@ -264,7 +263,7 @@ func logPanic(e error) {
 	log.Printf("There is an error: %v", e)
 }
 
-func rpcClient() float32{
+func rpcClient() float32 {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
