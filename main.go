@@ -28,7 +28,7 @@ func main() {
 	// fmt.Printf("The values are: %v\n", a)
 	// _, r := dump(a)
 	r := rpcClient()
-	
+
 	c.Set("rate", r, 24*time.Hour)
 
 	b, err := tb.NewBot(tb.Settings{
@@ -236,7 +236,7 @@ func main() {
 		res, err := billers(true, zain, payInfo, pan, ipin, expDate, uuid, float32(amountVal))
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
 			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
 		}
@@ -318,7 +318,7 @@ func main() {
 		res, err := billers(true, mtn, payInfo, pan, ipin, expDate, uuid, float32(amountVal))
 		if err != nil {
 			fmt.Printf("The error is: %v", err)
-			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Codeode: %v", res.ResponseMessage, res.ResponseCode))
+			b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
 		} else {
 			b.Send(m.Sender, fmt.Sprintf("Successful Transaction. Reference number: %v", res.ResponseMessage))
 		}
@@ -529,12 +529,82 @@ func main() {
 				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
 				return
 			}
-			biller := getBiller(v[0])
-			res, err := billers(true, biller, "MPHONE="+v[0], pan, ipin, expDate, uuid, float32(amountVal))
+			biller, pre := getBiller(v[0])
+			res, err := billers(true, biller, pre+v[0], pan, ipin, expDate, uuid, float32(amountVal))
 			if err != nil {
 				errCounter++
 				fmt.Printf("The error is: %v", err)
 				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Code: %v", res.ResponseMessage, res.ResponseCode))
+			} else {
+				b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Message: %v\nBill Info: %v",
+					res.ResponseMessage, res.BillInfo),
+					&tb.SendOptions{
+						ParseMode: "markdown",
+					})
+			}
+		}
+		// Count the Sum of the transactions.
+		if errCounter > 0 {
+			b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v\nAll Transaction(s) Completed with %d Errors\nMade with <3 By your friends at Solus!", time.Now().UTC(), errCounter))
+			return
+		}
+		b.Send(m.Sender, fmt.Sprintf("Transaction Summary for %v, All Transaction(s) Completed Successfully\nMade with <3 By your friends at Solus!", time.Now().UTC()))
+
+	})
+
+	b.Handle("/payment", func(m *tb.Message) {
+		// get key
+		payload := m.Payload
+		p := strings.Split(payload, " ")
+		fmt.Printf("The payload is: %v", p)
+		if len(p) < 5 {
+			b.Send(m.Sender, "Please send: PAN, IPIN, and ExpDate, mobile number and amount")
+			return
+		}
+
+		key, err := getKey()
+		if err != nil {
+			log.Printf("The erorr is: %v. The key is: %v\n", err, key)
+			b.Send(m.Sender, "Failed to process the transaction. Code PUB_KEY_ERR\n")
+			return
+		}
+
+		expDate := p[2]
+		pan := p[0]
+
+		data := toStrings(p[3:])
+		log.Printf("The len of data is: %v", len(data))
+
+		if isOdd(len(p[3:])) {
+
+			b.Send(m.Sender, "Wrong format. Please use biller_number amount pair")
+			return
+		}
+
+		fields := dispatch(data)
+		log.Printf("The fields output is: %#v", fields)
+		var errCounter int
+
+		for _, v := range fields {
+			log.Printf("The bulked data is: %v, Type: %T", v[0], v)
+			amountVal, _ := strconv.ParseFloat(v[1], 32)
+			// amountVal := fmt.Sprintf("%.2f", fval)
+
+			// generate ipin and generate uuid
+			uuid := uuid.New().String()
+			ipin, err := rsaEncrypt(key, p[1], uuid)
+
+			if err != nil {
+				log.Printf("The erorr is: %v. The IPIN is: %v\n", err, p[1])
+				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
+				return
+			}
+			biller, pre := getBiller(v[0])
+			res, err := billers(true, biller, pre+v[0], pan, ipin, expDate, uuid, float32(amountVal))
+			if err != nil {
+				errCounter++
+				fmt.Printf("The error is: %v", err)
+				b.Send(m.Sender, fmt.Sprintf("Transaction Failed.\nResponse Message: %v. \nResponse Message: %v", res.ResponseMessage, res.ResponseCode))
 			} else {
 				b.Send(m.Sender, fmt.Sprintf("Successful Transaction\nResponse Message: %v\nBill Info: %v",
 					res.ResponseMessage, res.BillInfo),
@@ -585,8 +655,8 @@ func main() {
 				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
 				return
 			}
-			biller := getBiller(v)
-			res, err := billers(false, biller, "MPHONE="+v, pan, ipin, expDate, uuid, 0)
+			biller, pre := getBiller(v)
+			res, err := billers(false, biller, pre+v, pan, ipin, expDate, uuid, 0)
 
 			info := res.BillInfo
 			if err != nil {

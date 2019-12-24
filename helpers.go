@@ -224,13 +224,18 @@ func toStrings(l []string) string {
 	return normalize(strings.Join(l, " "))
 }
 
-func getBiller(b string) string {
+func getBiller(b string) (string, string) {
+
+	//"MPHONE="
+	pre := "MPHONE="
 	if strings.HasPrefix(b, "092") || strings.HasPrefix(b, "099") {
-		return mtnBillPayment
+		return mtnBillPayment, pre
 	} else if strings.HasPrefix(b, "01") {
-		return sudaniBillPayment
+		return sudaniBillPayment, pre
+	} else if strings.HasPrefix(b, "04") {
+		return necPayment, "METER="
 	}
-	return zainBillInquiry
+	return zainBillInquiry, pre
 }
 
 func getInvoices(b string) string {
