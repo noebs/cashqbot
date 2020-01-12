@@ -17,6 +17,8 @@ import (
 // currentPrice := make(chan float32)
 var ticker = time.NewTicker(3 * time.Hour)
 var usdRate = rpcClient()
+var c = cache.New(5*time.Hour, 10*time.Hour)
+
 const (
 	zain   = "0010010001"
 	mtn    = "0010010003"
@@ -26,7 +28,7 @@ const (
 
 
 func main() {
-	c := cache.New(5*time.Hour, 10*time.Hour)
+	
 
 	// a := extract("https://www.price-today.com/currency-prices-sudan/")
 	// fmt.Printf("The values are: %v\n", a)
