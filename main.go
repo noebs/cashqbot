@@ -14,6 +14,9 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
+// currentPrice := make(chan float32)
+var ticker = time.NewTicker(3 * time.Hour)
+var usdRate = rpcClient()
 const (
 	zain   = "0010010001"
 	mtn    = "0010010003"
@@ -21,15 +24,16 @@ const (
 	nec    = "0010020001"
 )
 
+
 func main() {
 	c := cache.New(5*time.Hour, 10*time.Hour)
 
 	// a := extract("https://www.price-today.com/currency-prices-sudan/")
 	// fmt.Printf("The values are: %v\n", a)
 	// _, r := dump(a)
-	r := rpcClient()
+	
 
-	c.Set("rate", r, 24*time.Hour)
+	c.Set("rate", usdRate, 24*time.Hour)
 
 	b, err := tb.NewBot(tb.Settings{
 		Token: "1001304778:AAGqNz-9ESmnMjMcsIqzsN_1A_ncWydb6fw",
@@ -828,4 +832,14 @@ func getCardPayload(payload string) (Card, error) {
 	}
 	c := Card{PAN: p[0], IPIN: p[1], Expdate: p[2]}
 	return c, nil
+}
+
+func tickerHandler() {
+	for {
+		select {
+		case <-ticker.C:
+			usdRate = rpcClient()
+
+		}
+	}
 }
