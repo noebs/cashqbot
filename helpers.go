@@ -144,16 +144,16 @@ func (n *necBill) NewFromMap(f map[string]interface{}) {
 }
 
 const (
+	zainTopUp	= "0010010001"
+	zainBillPayment	= "0010010002"
+	mtnTopUp	= "0010010003"
+	mtnBillPayment= 	"0010010004"
+	sudaniTopUp	= "0010010005"
+	sudaniBillPayment = 	"0010010006"
 	necPayment          = "0010020001"
 	zainBillInquiry     = "0010010002"
-	zainBillPayment     = "0010010002"
-	zainTopUp           = "0010010001"
 	mtnBillInquiry      = "0010010004"
-	mtnBillPayment      = "0010010004"
-	mtnTopUp            = "0010010003"
 	sudaniBillInquiry   = "0010010006"
-	sudaniBillPayment   = "0010010006"
-	sudaniTopUp         = "0010030002"
 	moheBillInquiry     = "0010030002"
 	moheBillPayment     = "0010030002"
 	customsBillInquiry  = "0010030003"
