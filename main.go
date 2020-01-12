@@ -839,7 +839,7 @@ func tickerHandler() {
 		select {
 		case <-ticker.C:
 			usdRate = rpcClient()
-
+			c.Set("rate", usdRate, 24*time.Hour)
 		}
 	}
 }
