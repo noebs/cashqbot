@@ -599,7 +599,7 @@ func main() {
 				b.Send(m.Sender, "Failed to process the transaction. Code RSA_ERR")
 				return
 			}
-			biller, pre := getBiller(v[0])
+			biller, pre := getTopUp(v[0])
 			res, err := billers(true, biller, pre+v[0], pan, ipin, expDate, uuid, float32(amountVal))
 			if err != nil {
 				errCounter++

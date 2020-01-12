@@ -225,7 +225,6 @@ func toStrings(l []string) string {
 }
 
 func getBiller(b string) (string, string) {
-
 	//"MPHONE="
 	pre := "MPHONE="
 	if strings.HasPrefix(b, "092") || strings.HasPrefix(b, "099") {
@@ -236,6 +235,19 @@ func getBiller(b string) (string, string) {
 		return necPayment, "METER="
 	}
 	return zainBillInquiry, pre
+}
+
+func getTopUp(b string) (string, string) {
+	//"MPHONE="
+	pre := "MPHONE="
+	if strings.HasPrefix(b, "092") || strings.HasPrefix(b, "099") {
+		return mtnTopUp, pre
+	} else if strings.HasPrefix(b, "01") {
+		return sudaniTopUp, pre
+	} else if strings.HasPrefix(b, "04") {
+		return necPayment, "METER="
+	}
+	return zainTopUp, pre
 }
 
 func getInvoices(b string) string {
