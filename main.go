@@ -139,8 +139,8 @@ func main() {
 	})
 
 	b.Handle("/start", func(m *tb.Message) {
-		b.Send(m.Sender, `Welcome to cashqbot your friendly 🤖 payment
-		press /help for helping using cashqbot`)
+		b.Send(m.Sender, `Welcome to cashqbot your friendly payment 🤖
+press /help for helping using cashqbot`)
 	})
 
 	b.Handle("/test", func(m *tb.Message) {
