@@ -7,6 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	pb "github.com/adonese/microservices/raterpc/rate"
+	"github.com/go-redis/redis/v7"
+	"golang.org/x/net/html"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
 	"math"
@@ -15,10 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	pb "github.com/adonese/microservices/raterpc/rate"
-	"github.com/go-redis/redis/v7"
-	"golang.org/x/net/html"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -306,13 +306,14 @@ func rpcClient() float32 {
 func getMostUser(r *redis.Client) {
 	z := &redis.ZRangeBy{Min: "-Inf", Max: "+Inf"}
 
-	
 	user, err := r.ZRangeByScore("telegram:users", z).Result()
 	if err != nil {
 		// do something
 		log.Printf("the error in redis is: %v", err)
 		return
 	}
+	log.Printf("the error in redis is: %v", user)
+
 	// do something with the user value
 }
 
