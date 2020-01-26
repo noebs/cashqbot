@@ -7,16 +7,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	pb "github.com/adonese/microservices/raterpc/rate"
-	"golang.org/x/net/html"
-	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
+	pb "github.com/adonese/microservices/raterpc/rate"
+	"github.com/go-redis/redis/v7"
+	"golang.org/x/net/html"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -144,12 +146,12 @@ func (n *necBill) NewFromMap(f map[string]interface{}) {
 }
 
 const (
-	zainTopUp	= "0010010001"
-	zainBillPayment	= "0010010002"
-	mtnTopUp	= "0010010003"
-	mtnBillPayment= 	"0010010004"
-	sudaniTopUp	= "0010010005"
-	sudaniBillPayment = 	"0010010006"
+	zainTopUp           = "0010010001"
+	zainBillPayment     = "0010010002"
+	mtnTopUp            = "0010010003"
+	mtnBillPayment      = "0010010004"
+	sudaniTopUp         = "0010010005"
+	sudaniBillPayment   = "0010010006"
 	necPayment          = "0010020001"
 	zainBillInquiry     = "0010010002"
 	mtnBillInquiry      = "0010010004"
@@ -299,4 +301,26 @@ func rpcClient() float32 {
 	log.Printf("Greeting: %f", r.Message)
 	return r.Message
 
+}
+
+func getMostUser(r *redis.Client) {
+	z := &redis.ZRangeBy{Min: "-Inf", Max: "+Inf"}
+
+	
+	user, err := r.ZRangeByScore("telegram:users", z).Result()
+	if err != nil {
+		// do something
+		log.Printf("the error in redis is: %v", err)
+		return
+	}
+	// do something with the user value
+}
+
+func getRedis() *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("CASHQBOT_REDIS"),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	return client
 }

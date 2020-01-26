@@ -15,9 +15,9 @@ import (
 )
 
 // currentPrice := make(chan float32)
-var ticker = time.NewTicker(3 * time.Hour)
+var ticker = time.NewTicker(10 * time.Second)
 var usdRate = rpcClient()
-var c = cache.New(5*time.Hour, 10*time.Hour)
+var c = cache.New(5*time.Hour, 5*time.Minute)
 
 const (
 	zain   = "0010010001"
@@ -26,14 +26,13 @@ const (
 	nec    = "0010020001"
 )
 
-
 func main() {
-	
+
+	go tickerHandler()
 
 	// a := extract("https://www.price-today.com/currency-prices-sudan/")
 	// fmt.Printf("The values are: %v\n", a)
 	// _, r := dump(a)
-	
 
 	c.Set("rate", usdRate, 24*time.Hour)
 
@@ -139,6 +138,11 @@ func main() {
 		b.Send(m.Sender, m.Payload)
 	})
 
+	b.Handle("/start", func(m *tb.Message) {
+		b.Send(m.Sender, `Welcome to cashqbot your friendly 🤖 payment
+		press /help for helping using cashqbot`)
+	})
+
 	b.Handle("/test", func(m *tb.Message) {
 
 		var pin, pan string
@@ -172,16 +176,17 @@ func main() {
 	})
 
 	b.Handle("/rate", func(m *tb.Message) {
-		if res, ok := c.Get("rate"); !ok {
-			a := extract("https://www.price-today.com/currency-prices-sudan/")
-			fmt.Printf("The values are: %v\n", a)
-			_, r := dump(a)
-			fmt.Printf("The USD rate is: %v\n", r)
-			c.Set("rate", r, 24*time.Hour)
-		} else {
-			b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", res.(string)))
-		}
-
+		// if res, ok := c.Get("rate"); !ok {
+		// 	a := extract("https://www.price-today.com/currency-prices-sudan/")
+		// 	fmt.Printf("The values are: %v\n", a)
+		// 	_, r := dump(a)
+		// 	fmt.Printf("The USD rate is: %v\n", r)
+		// 	c.Set("rate", r, 24*time.Hour)
+		// } else {
+		// 	b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", res.(string)))
+		// }
+		// res, _ := c.Get("rate")
+		b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", usdRate))
 	})
 
 	b.Handle("/balance", func(m *tb.Message) {
