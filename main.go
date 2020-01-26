@@ -176,6 +176,7 @@ func main() {
 	})
 
 	b.Handle("/rate", func(m *tb.Message) {
+<<<<<<< HEAD
 		// if res, ok := c.Get("rate"); !ok {
 		// 	a := extract("https://www.price-today.com/currency-prices-sudan/")
 		// 	fmt.Printf("The values are: %v\n", a)
@@ -187,6 +188,18 @@ func main() {
 		// }
 		// res, _ := c.Get("rate")
 		b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", usdRate))
+=======
+		if res, ok := c.Get("rate"); !ok {
+			a := extract("https://www.price-today.com/currency-prices-sudan/")
+			fmt.Printf("The values are: %v\n", a)
+			_, r := dump(a)
+			fmt.Printf("The USD rate is: %v\n", r)
+			c.Set("rate", r, 24*time.Hour)
+		} else {
+			b.Send(m.Sender, fmt.Sprintf("The rate for USD is: %vSDG\nThanks Hamadok 😘📢", res.(string)))
+		}
+
+>>>>>>> refs/remotes/origin/master
 	})
 
 	b.Handle("/balance", func(m *tb.Message) {
