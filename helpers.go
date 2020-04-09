@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	address = "http://127.0.0.1:50051"
+	address = "localhost:50051"
 )
 
 func request(buf []byte, url string) (Response, error) {
@@ -239,8 +239,7 @@ func rpcClient() float32 {
 	c := pb.NewRaterClient(conn)
 
 	// Contact the server and print out its response.
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	r, err := c.GetSDGRate(ctx, &pb.Empty{})
 	if err != nil {
