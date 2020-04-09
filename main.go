@@ -709,7 +709,7 @@ func getKey() (string, error) {
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/key")
+	noebs, err := request(buf, "https://api.soluspay.net/api/consumer/key")
 	if err != nil {
 		return "", err
 	}
@@ -733,7 +733,7 @@ func balance(ipin, pan, expDate, uuid string) (Response, error) {
 
 	buf, _ := json.Marshal(&k)
 
-	res, err := request(buf, "http://192.168.20.20:8080/consumer/balance")
+	res, err := request(buf, "https://api.soluspay.net/api/consumer/balance")
 	if err != nil {
 		return res, err
 	}
@@ -788,7 +788,7 @@ func billers(isPayment bool, payeeId, personalInfo, pan, ipin, expDate, uuid str
 	if !isPayment {
 		endpoint = "bill_inquiry"
 	}
-	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/"+endpoint)
+	noebs, err := request(buf, "https://api.soluspay.net/api/consumer/"+endpoint)
 	if err != nil {
 		return noebs, err
 	}
@@ -824,7 +824,7 @@ func cardTransfer(toCard, pan, ipin, expDate, uuid string, amount float32) (Resp
 
 	buf, _ := json.Marshal(&k)
 
-	noebs, err := request(buf, "http://192.168.20.20:8080/consumer/p2p")
+	noebs, err := request(buf, "https://api.soluspay.net/api/consumer/p2p")
 	if err != nil {
 		return noebs, err
 	}
