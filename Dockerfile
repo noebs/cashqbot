@@ -8,7 +8,7 @@ WORKDIR /cashq
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
-RUN go build /cashq -o /cashqapp
+RUN GOPROXY=https://goproxy.io go build -o /cashqapp
 
 # Run the outyet command by default when the container starts.
 ENTRYPOINT /cashqapp
