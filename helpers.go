@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	address = "localhost:50051"
+	address = "http://127.0.0.1:50051"
 )
 
 func request(buf []byte, url string) (Response, error) {
