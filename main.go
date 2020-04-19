@@ -15,7 +15,7 @@ import (
 )
 
 // ServerIP
-const ServerIP = "https://beta.soluspay.net/api/consumer/"
+const ServerIP = "https://192.168.1.3/api/consumer/"
 
 // currentPrice := make(chan float32)
 var ticker = time.NewTicker(10 * time.Second)
