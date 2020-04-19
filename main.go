@@ -14,7 +14,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-// ServerIP
+// ServerIP is used for our internal server
 const ServerIP = "https://192.168.1.3/api/consumer/"
 
 // currentPrice := make(chan float32)
@@ -157,8 +157,8 @@ press /help for helping using cashqbot`)
 		}
 
 		replyKeys := [][]tb.ReplyButton{
-			[]tb.ReplyButton{replyBtn},
-			[]tb.ReplyButton{visitSolus},
+			{replyBtn},
+			{visitSolus},
 		}
 
 		b.Handle(&replyBtn, func(m *tb.Message) {

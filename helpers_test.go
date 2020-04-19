@@ -5,38 +5,6 @@ import (
 	"testing"
 )
 
-func Test_extract(t *testing.T) {
-	type args struct {
-		domain string
-	}
-	/*
-		"meterFees": "3232"
-		"netAmount": "121"
-		"customerName": "ahmed"
-		"accountNo": "ac123"
-		"meterNumber": "04209"
-		"token": "12121212121"
-		"unitsInKWh": "2121.21"
-		"waterFees": "21"
-		"opertorMessage": "21"
-	*/
-
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := extract(tt.args.domain); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("extract() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_necFormatter(t *testing.T) {
 	type args struct {
 		bInfo map[string]interface{}

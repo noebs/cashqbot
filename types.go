@@ -10,7 +10,7 @@ type Key struct {
 type CardTransfer struct {
 	Key
 	Card
-	ToCard string `json:"toCard`
+	ToCard string `json:"toCard"`
 	Amount
 }
 type Bills struct {
