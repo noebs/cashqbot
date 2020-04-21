@@ -13,6 +13,7 @@ type CardTransfer struct {
 	ToCard string `json:"toCard"`
 	Amount
 }
+
 type Bills struct {
 	Key
 	Card
@@ -66,4 +67,50 @@ type necBill struct {
 	Token        string  `json:"Token"`
 	MeterNumber  string  `json:"MeterNumber"`
 	CustomerName string  `json:"CustomerName"`
+}
+
+type User struct {
+	Card     Card
+	Username string // telegram username
+	Mobile   string
+	Commons  map[string]string
+}
+
+// NewUser initalizes and creates and a new user
+func NewUser() User {
+	c := make(map[string]string)
+	return User{Commons: c}
+}
+
+func (u User) recordCommon(key, value string) {
+	// commons should be initialized
+
+	u.Commons[key] = value
+}
+
+func (u User) getUsername() string {
+	return u.Username
+}
+func (u User) getMobile() string {
+	return u.Mobile
+}
+func (u User) getCard() Card {
+	return u.Card
+}
+
+// PersistentData storage for saving user's data
+type PersistentData []User
+
+func (sc PersistentData) append(u User) {
+	sc = append(sc, u)
+}
+
+// get the username of the system
+func (sc PersistentData) findUser(username string) (bool, User) {
+	for _, u := range sc {
+		if u.Username == username {
+			return true, u
+		}
+	}
+	return false, User{}
 }
