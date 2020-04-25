@@ -15,7 +15,8 @@ import (
 )
 
 // ServerIP is used for our internal server
-const ServerIP = "https://192.168.1.3/api/consumer/"
+// curl https://100.74.147.70/api/isAlive
+const ServerIP = "https://100.74.147.70/api/consumer/"
 
 // currentPrice := make(chan float32)
 var ticker = time.NewTicker(10 * time.Second)
