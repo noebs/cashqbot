@@ -14,8 +14,9 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-// ServerIP
-const ServerIP = "https://192.168.1.3/api/consumer/"
+// ServerIP is used for our internal server
+// curl https://100.74.147.70/api/isAlive
+const ServerIP = "https://100.74.147.70/api/consumer/"
 
 // currentPrice := make(chan float32)
 var ticker = time.NewTicker(10 * time.Second)
@@ -157,8 +158,8 @@ press /help for helping using cashqbot`)
 		}
 
 		replyKeys := [][]tb.ReplyButton{
-			[]tb.ReplyButton{replyBtn},
-			[]tb.ReplyButton{visitSolus},
+			{replyBtn},
+			{visitSolus},
 		}
 
 		b.Handle(&replyBtn, func(m *tb.Message) {
