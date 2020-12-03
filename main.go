@@ -16,7 +16,7 @@ import (
 
 // ServerIP is used for our internal server
 // curl https://100.74.147.70/api/isAlive
-const ServerIP = "https://100.74.147.70/api/consumer/"
+const ServerIP = "https://beta.soluspay.net/api/consumer/"
 
 // currentPrice := make(chan float32)
 var ticker = time.NewTicker(10 * time.Second)
