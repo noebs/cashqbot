@@ -217,7 +217,13 @@ press /help for helping using cashqbot`)
 	})
 
 	b.Handle("/zain", func(m *tb.Message) {
+
 		// get key
+
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -260,6 +266,11 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/sudani", func(m *tb.Message) {
 		// get key
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -301,6 +312,11 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/mtn", func(m *tb.Message) {
 		// get key
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -342,6 +358,12 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/nec", func(m *tb.Message) {
 		// get key
+
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -419,6 +441,12 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/p2p", func(m *tb.Message) {
 		// get key
+
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -495,6 +523,12 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/bills", func(m *tb.Message) {
 		// get key
+
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
@@ -639,6 +673,12 @@ press /help for helping using cashqbot`)
 
 	b.Handle("/invoices", func(m *tb.Message) {
 		// get key
+
+		if time.Since(m.Time()) > time.Minute {
+			b.Send(m.Sender, "Message time out. Try again 🙏")
+			return
+		}
+
 		payload := m.Payload
 		p := strings.Split(payload, " ")
 		fmt.Printf("The payload is: %v", p)
